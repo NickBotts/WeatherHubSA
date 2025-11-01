@@ -4,13 +4,47 @@
   <meta charset="UTF-8">
   <title>Weather Hub SA</title>
   <style>
-    body { font-family: 'Poppins', Arial, sans-serif; text-align:center; color:#222; }
+    body {
+      font-family: 'Poppins', Arial, sans-serif;
+      text-align: center;
+      color: #222;
+      background: linear-gradient(to bottom, #87CEFA, #f0f8ff);
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
     h1 { color:#0078d7; margin-bottom:5px; }
     p { font-size:18px; color:#555; margin-top:0; }
-    input { padding:10px; width:220px; border-radius:5px; border:1px solid #ccc; font-size:14px; }
-    button { padding:10px 15px; border:none; background-color:#0078d7; color:white; border-radius:5px; cursor:pointer; font-weight:bold; }
-    .forecast-container { display:flex; justify-content:center; flex-wrap:wrap; margin-top:30px; }
-    .day-card { margin:10px; padding:15px; background:#f4f4f4; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); width:150px; }
+    input {
+      padding:10px;
+      width:220px;
+      border-radius:5px;
+      border:1px solid #ccc;
+      font-size:14px;
+    }
+    button {
+      padding:10px 15px;
+      border:none;
+      background-color:#0078d7;
+      color:white;
+      border-radius:5px;
+      cursor:pointer;
+      font-weight:bold;
+    }
+    .forecast-container {
+      display:flex;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-top:30px;
+    }
+    .day-card {
+      margin:10px;
+      padding:15px;
+      background:#f4f4f4;
+      border-radius:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.1);
+      width:150px;
+    }
     .day-card strong { color:#0078d7; }
   </style>
 </head>
@@ -30,25 +64,31 @@
     function getWeather() {
       let city = document.getElementById('city').value;
       if (!city) {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(position => {
-            fetchWeather(position.coords.latitude, position.coords.longitude);
-          });
-        }
+        // Default to Johannesburg if no city typed
+        fetchWeatherByCity("Johannesburg");
       } else {
-        fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
-          .then(res => res.json())
-          .then(data => {
-            fetchWeather(data.coord.lat, data.coord.lon);
-          })
-          .catch(() => {
-            document.getElementById('weather').innerHTML = "<p style='color:red;'>City not found.</p>";
-          });
+        fetchWeatherByCity(city);
       }
     }
 
+    function fetchWeatherByCity(city) {
+      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`)
+        .then(res => res.json())
+        .then(data => {
+          const lat = data.coord.lat;
+          const lon = data.coord.lon;
+          fetchWeather(lat, lon);
+        })
+        .catch(() => {
+          document.getElementById('weather').innerHTML = "<p style='color:red;'>City not found.</p>";
+        });
+    }
+
     function fetchWeather(lat, lon) {
-      fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${apiKey}&units=metric`)
+      const url = `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${apiKey}&units=metric`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+      fetch(proxyUrl)
         .then(res => res.json())
         .then(data => displayWeather(data))
         .catch(() => {
@@ -75,6 +115,7 @@
       document.getElementById('weather').innerHTML = html;
     }
 
+    // Initial load
     getWeather();
   </script>
 
